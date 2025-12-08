@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WezTerm Theme Maker Pro</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anonymous+Pro:wght@400;700&family=Cousine:wght@400;700&family=Fira+Code:wght@400;700&family=IBM+Plex+Mono:wght@400;700&family=Inconsolata:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Roboto+Mono:wght@400;700&family=Source+Code+Pro:wght@400;700&family=Space+Mono:wght@400;700&family=Ubuntu+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- RESET & LAYOUT --- */
+        * { box-sizing: border-box; }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0d0d0d;
+            color: #ccc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            font-size: 13px;
+        }
+
+        /* --- LAYOUT GRID --- */
+        #app-container {
+            display: grid;
+            grid-template-columns: 360px 1fr 400px; /* Sidebar | Grid | Preview */
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* --- 1. SIDEBAR --- */
+        #sidebar {
+            background-color: #1a1a1a;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .sidebar-scroll {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* --- 2. CENTER: GALAXY GRID --- */
+        #center-stage {
+            background-color: #000; /* Dynamic BG */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+            position: relative;
+            transition: background-color 0.1s;
+        }
+
+        /* --- 3. RIGHT: LIVE PREVIEW --- */
+        #right-panel {
+            background-color: #111;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background-color 0.2s;
+        }
+
+        .panel-header {
+            padding: 10px 15px;
+            border-bottom: 1px solid #333;
+            font-weight: 600;
+            color: #fff;
+            background: #1a1a1a;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .reset-btn {
+            background: #333; border: 1px solid #444; color: #aaa;
+            padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 10px;
+            text-transform: uppercase; transition: 0.2s;
+        }
+        .reset-btn:hover { background: #444; color: #fff; }
+
+        .fake-code {
+            flex: 1;
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre;
+            overflow: auto;
+            color: #ccc;
+            transition: color 0.2s;
+        }
+
+        /* --- UI COMPONENTS --- */
+        h1 { font-size: 16px; color: #fff; margin: 0 0 20px 0; text-align: center; font-weight: 700; }
+        
+        .tool-box {
+            background: #252526;
+            border: 1px solid #333;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+
+        label.box-label {
+            font-size: 10px; color: #888; text-transform: uppercase; 
+            letter-spacing: 1px; display: block; margin-bottom: 8px; font-weight: 600;
+        }
+
+        .btn-action {
+            background: #333; border: 1px solid #444; color: #eee;
+            padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 11px; font-weight: 500;
+            transition: all 0.2s; width: 100%;
+        }
+        .btn-action:hover { background: #444; color: #fff; border-color: #666; }
+
+        select {
+            width: 100%; padding: 6px; background: #111; color: #eee;
+            border: 1px solid #444; border-radius: 4px; font-size: 11px;
+        }
+
+        /* Font Install Tabs */
+        .os-tabs { display: flex; margin-bottom: 5px; border-bottom: 1px solid #444; }
+        .os-tab {
+            flex: 1; background: transparent; border: none; color: #888;
+            padding: 4px; font-size: 9px; cursor: pointer; text-transform: uppercase;
+        }
+        .os-tab.active { color: #fff; border-bottom: 2px solid #4a9eff; font-weight: bold; }
+        .install-code {
+            background: #111; color: #7af; padding: 8px; border-radius: 4px;
+            font-family: monospace; font-size: 10px; overflow-x: auto; white-space: nowrap;
+            border: 1px solid #333; margin-bottom: 5px; cursor: pointer;
+        }
+
+        /* Color Controls */
+        .control-row { display: flex; align-items: center; margin-bottom: 4px; gap: 8px; }
+        .control-label { flex: 1; font-size: 11px; color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        input[type="text"] {
+            width: 55px; background: #1a1a1a; border: 1px solid #444; color: #ddd;
+            font-family: monospace; font-size: 10px; padding: 3px; text-align: center; border-radius: 3px;
+        }
+        input[type="color"] {
+            -webkit-appearance: none; width: 20px; height: 20px; border: none; background: none; cursor: pointer; padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch { border: 1px solid #555; border-radius: 3px; }
+
+        /* --- THE GALAXY GRID --- */
+        table.galaxy-grid {
+            border-collapse: collapse;
+            border-spacing: 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            background: transparent;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        .galaxy-grid thead th {
+            padding: 4px 8px;
+            font-weight: normal;
+            color: #888;
+            font-size: 11px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .galaxy-grid td {
+            padding: 3px 6px;
+            white-space: pre;
+            text-align: center;
+        }
+
+        .galaxy-grid .label-col {
+            text-align: right;
+            color: #666;
+            padding-right: 10px;
+            font-size: 11px;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .galaxy-grid .g-cell {
+            cursor: pointer;
+        }
+        .galaxy-grid .g-cell:hover {
+            outline: 2px solid #fff;
+            z-index: 100;
+            position: relative;
+        }
+
+        /* --- TOAST --- */
+        #toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: #4a9eff; color: white; padding: 10px 20px; border-radius: 20px;
+            font-size: 12px; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+            font-weight: 600; box-shadow: 0 5px 15px rgba(0,0,0,0.4); z-index: 999;
+        }
+
+        h2 { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #555; margin: 15px 0 5px 0; border-bottom: 1px solid #333; }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        
+        <!-- 1. LEFT SIDEBAR (Controls) -->
+        <div id="sidebar">
+            <div class="sidebar-scroll">
+                <h1>WezTerm Theme Maker</h1>
+
+                <!-- PRESETS -->
+                <div class="tool-box">
+                    <label class="box-label">
+                        Presets (<span id="theme-count">--</span>)
+                    </label>
+                    <select id="preset-select">
+                        <option value="" disabled selected>Select a theme...</option>
+                    </select>
+                    <div style="display:flex; gap:5px; margin-top:5px;">
+                        <button class="btn-action" onclick="cycleTheme(-1)">&#9664;</button>
+                        <button class="btn-action" onclick="cycleTheme(1)">&#9654;</button>
+                    </div>
+                </div>
+
+                <!-- TOOLS -->
+                <div class="tool-box">
+                    <label class="box-label">Tools</label>
+                    <button class="btn-action" onclick="randomizePalette()" style="margin-bottom:10px;">Randomize Palette</button>
+                    
+                    <label class="box-label" style="margin-top:10px;">Vibe Generator</label>
+                    <div style="display:flex; gap:5px;">
+                         <input type="color" id="vibe-seed" value="#5c5cff" style="flex:1; height:24px; border:1px solid #444; border-radius:3px;">
+                         <button class="btn-action" style="flex:2;" onclick="generateVibe()">Generate</button>
+                    </div>
+                </div>
+
+                <!-- FONT -->
+                <div class="tool-box">
+                    <label class="box-label">Font</label>
+                    <select id="font-select" onchange="updateFont()"></select>
+                    <div class="os-tabs">
+                        <button class="os-tab active" onclick="setOs('mac', this)">MacOS</button>
+                        <button class="os-tab" onclick="setOs('win', this)">Win</button>
+                        <button class="os-tab" onclick="setOs('linux', this)">Linux</button>
+                    </div>
+                    <div id="install-cmd" class="install-code" onclick="copyInstallCmd()" title="Copy Command"></div>
+                </div>
+
+                <!-- MANUAL INPUTS -->
+                <div id="controls-base" style="padding:0 12px;"></div>
+                <div id="controls-ansi" style="padding:0 12px;"></div>
+                <div id="controls-bright" style="padding:0 12px;"></div>
+                <div style="height:40px;"></div>
+            </div>
+            
+            <!-- EXPORT BAR FIXED BOTTOM LEFT -->
+            <div style="padding:12px; border-top:1px solid #333; background:#1a1a1a;">
+                <select id="export-format" onchange="updateHint()">
+                    <option value="builder" selected>Builder (config.colors)</option>
+                    <option value="inline">Inline (return {})</option>
+                    <option value="file">File (module)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 2. CENTER STAGE (Grid) -->
+        <div id="center-stage">
+            <table class="galaxy-grid" id="grid">
+                <!-- Generated by JS -->
+            </table>
+            <div style="margin-top:20px; font-size:11px; color:rgba(255,255,255,0.3);">
+                Click grid to <span style="color:#fff;">Copy Code</span> & <span style="color:#fff;">Preview Colors</span>
+            </div>
+            <div id="toast">Copied!</div>
+        </div>
+
+        <!-- 3. RIGHT PANEL (Preview) -->
+        <div id="right-panel">
+            <div class="panel-header">
+                <span id="preview-title">Theme Preview</span>
+                <button class="reset-btn" onclick="resetPreview()">Reset View</button>
+            </div>
+            <div class="fake-code" id="code-block">
+                <!-- Code Generated by JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. DATA: FONTS ---
+        const fonts = [
+            { name: "JetBrains Mono", css: "'JetBrains Mono', monospace", wez: "JetBrainsMono Nerd Font", 
+              mac: "brew install --cask font-jetbrains-mono-nerd-font", win: "winget install -e --id RyanL.NerdFonts.JetBrainsMono", lin: "curl -OL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz && tar -xf JetBrainsMono.tar.xz -C ~/.local/share/fonts && fc-cache -fv" },
+            { name: "Fira Code", css: "'Fira Code', monospace", wez: "FiraCode Nerd Font", 
+              mac: "brew install --cask font-fira-code-nerd-font", win: "winget install -e --id RyanL.NerdFonts.FiraCode", lin: "curl -OL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/FiraCode.tar.xz && tar -xf FiraCode.tar.xz -C ~/.local/share/fonts && fc-cache -fv" },
+            { name: "Source Code Pro", css: "'Source Code Pro', monospace", wez: "SauceCodePro Nerd Font",
+              mac: "brew install --cask font-sauce-code-pro-nerd-font", win: "winget install -e --id RyanL.NerdFonts.SourceCodePro", lin: "curl -OL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/SourceCodePro.tar.xz && tar -xf SourceCodePro.tar.xz -C ~/.local/share/fonts && fc-cache -fv" },
+            { name: "Hack", css: "'Source Code Pro', monospace", wez: "Hack Nerd Font", 
+              mac: "brew install --cask font-hack-nerd-font", win: "winget install -e --id RyanL.NerdFonts.Hack", lin: "curl -OL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Hack.tar.xz && tar -xf Hack.tar.xz -C ~/.local/share/fonts && fc-cache -fv" },
+            { name: "Roboto Mono", css: "'Roboto Mono', monospace", wez: "RobotoMono Nerd Font",
+              mac: "brew install --cask font-roboto-mono-nerd-font", win: "winget install -e --id RyanL.NerdFonts.RobotoMono", lin: "curl -OL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/RobotoMono.tar.xz && tar -xf RobotoMono.tar.xz -C ~/.local/share/fonts && fc-cache -fv" },
+            { name: "Ubuntu Mono", css: "'Ubuntu Mono', monospace", wez: "UbuntuMono Nerd Font",
+              mac: "brew install --cask font-ubuntu-mono-nerd-font", win: "winget install -e --id RyanL.NerdFonts.UbuntuMono", lin: "curl -OL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/UbuntuMono.tar.xz && tar -xf UbuntuMono.tar.xz -C ~/.local/share/fonts && fc-cache -fv" }
+        ];
+
+        // --- 2. DATA: THEMES (Placeholders) ---
+        let presets = {}; 
+        const internalThemeData = {
+            "Dracula": { bg: "#282a36", fg: "#f8f8f2", c_bg: "#f8f8f2", c_fg: "#282a36", s_bg: "#44475a", s_fg: "#f8f8f2", ansi: ["#21222c","#ff5555","#50fa7b","#f1fa8c","#bd93f9","#ff79c6","#8be9fd","#f8f8f2"], brights: ["#6272a4","#ff6e6e","#69ff94","#ffffa5","#d6acff","#ff92df","#a4ffff","#ffffff"] },
+            "Tokyo Night": { bg: "#1a1b26", fg: "#c0caf5", c_bg: "#c0caf5", c_fg: "#1a1b26", s_bg: "#33467C", s_fg: "#c0caf5", ansi: ["#15161E","#f7768e","#9ece6a","#e0af68","#7aa2f7","#bb9af7","#7dcfff","#a9b1d6"], brights: ["#414868","#f7768e","#9ece6a","#e0af68","#7aa2f7","#bb9af7","#7dcfff","#c0caf5"] }
+        };
+
+        // --- STATE ---
+        let state = {
+            foreground: '#d0d0d0', background: '#151515', 
+            cursor_bg: '#d0d0d0', cursor_fg: '#151515', 
+            selection_bg: '#444444', selection_fg: '#ffffff',
+            ansi: ['#000000','#ac4142','#90a959','#f4bf75','#6a9fb5','#aa759f','#75b5aa','#d0d0d0'],
+            brights: ['#505050','#ac4142','#90a959','#f4bf75','#6a9fb5','#aa759f','#75b5aa','#f5f5f5']
+        };
+        let currentFontIndex = 0;
+        let currentOs = 'mac';
+        
+        // Preview State Overrides (null means use global theme)
+        let previewBg = null; 
+        let previewFg = null;
+
+        const ansiNames = ["Black", "Red", "Green", "Yellow", "Blue", "Magenta", "Cyan", "White"];
+        const baseKeys = [['foreground','Foreground'],['background','Background'],['cursor_bg','Cursor BG'],['cursor_fg','Cursor FG'],['selection_bg','Selection BG'],['selection_fg','Selection FG']];
+
+        // --- INIT ---
+        async function init() {
+            // Fonts
+            const fSel = document.getElementById('font-select');
+            fonts.forEach((f, i) => { const o = document.createElement('option'); o.value = i; o.innerText = f.name; fSel.appendChild(o); });
+            updateFont();
+
+            // Load Themes
+            await fetchThemes(); 
+
+            // Build Controls
+            buildControls();
+
+            // Render
+            render();
+
+            // Listeners
+            document.getElementById('preset-select').addEventListener('keydown', (e) => { 
+                if(e.key==='ArrowUp'||e.key==='ArrowDown') setTimeout(()=>loadPreset(document.getElementById('preset-select').value),0); 
+            });
+            
+            // Grid Click Handler (Delegation)
+            document.getElementById('grid').addEventListener('click', (e) => {
+                if(e.target.classList.contains('g-cell')) {
+                    // 1. Export Config
+                    exportLua();
+                    // 2. Update Preview Colors
+                    handleGridClick(e.target);
+                }
+            });
+        }
+
+        async function fetchThemes() {
+            // Future: fetch('themes.json')
+            presets = internalThemeData;
+            const pSel = document.getElementById('preset-select');
+            pSel.innerHTML = '<option value="" disabled selected>Select a theme...</option>';
+            Object.keys(presets).sort().forEach(k => { 
+                const o = document.createElement('option'); 
+                o.value = k; o.innerText = k; 
+                pSel.appendChild(o); 
+            });
+            pSel.addEventListener('change', (e) => loadPreset(e.target.value));
+            document.getElementById('theme-count').innerText = Object.keys(presets).length;
+        }
+
+        function buildControls() {
+            const mk = (id, label, val, cb) => {
+                const row = document.createElement('div'); row.className = 'control-row';
+                const lbl = document.createElement('div'); lbl.className = 'control-label'; lbl.innerText = label;
+                const txt = document.createElement('input'); txt.type='text'; txt.value=val; txt.id='hex-'+id;
+                const col = document.createElement('input'); col.type='color'; col.value=val; col.id='col-'+id;
+                const up = (v) => { txt.value=v; col.value=v; cb(v); render(); };
+                txt.onchange=e=>up(e.target.value); col.oninput=e=>up(e.target.value);
+                row.append(lbl, txt, col);
+                return row;
+            };
+            const baseDiv = document.getElementById('controls-base');
+            baseKeys.forEach(([k, n]) => baseDiv.appendChild(mk(k, n, state[k], v=>state[k]=v)));
+            const ansiDiv = document.getElementById('controls-ansi');
+            state.ansi.forEach((c,i) => ansiDiv.appendChild(mk('ansi-'+i, `${i} ${ansiNames[i]}`, c, v=>state.ansi[i]=v)));
+            const brightDiv = document.getElementById('controls-bright');
+            state.brights.forEach((c,i) => brightDiv.appendChild(mk('bright-'+i, `${i+8} Br${ansiNames[i]}`, c, v=>state.brights[i]=v)));
+        }
+
+        function refreshInputs() {
+            baseKeys.forEach(([k]) => { document.getElementById('hex-'+k).value=state[k]; document.getElementById('col-'+k).value=state[k]; });
+            state.ansi.forEach((c,i)=>{ document.getElementById('hex-ansi-'+i).value=c; document.getElementById('col-ansi-'+i).value=c; });
+            state.brights.forEach((c,i)=>{ document.getElementById('hex-bright-'+i).value=c; document.getElementById('col-bright-'+i).value=c; });
+        }
+
+        function updateFont() {
+            currentFontIndex = document.getElementById('font-select').value;
+            const f = fonts[currentFontIndex];
+            document.querySelector('.galaxy-grid').style.fontFamily = f.css;
+            document.querySelector('.fake-code').style.fontFamily = f.css;
+            document.getElementById('install-cmd').innerText = f[currentOs];
+        }
+
+        function setOs(os, btn) {
+            currentOs = os;
+            document.querySelectorAll('.os-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updateFont();
+        }
+
+        function copyInstallCmd() {
+            navigator.clipboard.writeText(document.getElementById('install-cmd').innerText).then(()=>showToast("Copied!"));
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast'); t.innerText = msg; t.style.opacity = '1';
+            setTimeout(() => t.style.opacity = '0', 1500);
+        }
+
+        // --- PRESETS & COLORS ---
+        function loadPreset(name) {
+            const p = presets[name]; if(!p) return;
+            state.background = p.bg; state.foreground = p.fg;
+            state.cursor_bg = p.c_bg; state.cursor_fg = p.c_fg;
+            state.selection_bg = p.s_bg; state.selection_fg = p.s_fg;
+            state.ansi = [...p.ansi]; state.brights = [...p.brights];
+            resetPreview(); // Reset preview when loading new theme
+            refreshInputs(); render();
+        }
+        function cycleTheme(dir) {
+            const s = document.getElementById('preset-select');
+            let idx = s.selectedIndex + dir;
+            if(idx<1) idx=s.options.length-1; if(idx>=s.options.length) idx=1;
+            s.selectedIndex=idx; loadPreset(s.value);
+        }
+        function randomizePalette() {
+            state.ansi = state.ansi.map(()=>'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'));
+            state.brights = state.ansi.map(c=>c);
+            resetPreview();
+            refreshInputs(); render();
+        }
+        function hexToHsl(h){let r=0,g=0,b=0;if(h.length===4){r="0x"+h[1]+h[1];g="0x"+h[2]+h[2];b="0x"+h[3]+h[3];}else{r="0x"+h[1]+h[2];g="0x"+h[3]+h[4];b="0x"+h[5]+h[6];}r/=255;g/=255;b/=255;let cmin=Math.min(r,g,b),cmax=Math.max(r,g,b),d=cmax-cmin,hu=0,s=0,l=(cmax+cmin)/2;if(d!==0)hu=(cmax===r)?((g-b)/d)%6:(cmax===g)?(b-r)/d+2:(r-g)/d+4;hu=Math.round(hu*60);if(hu<0)hu+=360;s=d===0?0:d/(1-Math.abs(2*l-1));return[hu,s*100,l*100];}
+        function hslToHex(h,s,l){s/=100;l/=100;let c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs(((h/60)%2)-1)),m=l-c/2,r=0,g=0,b=0;if(0<=h&&h<60){r=c;g=x;b=0;}else if(60<=h&&h<120){r=x;g=c;b=0;}else if(120<=h&&h<180){r=0;g=c;b=x;}else if(180<=h&&h<240){r=0;g=x;b=c;}else if(240<=h&&h<300){r=x;g=0;b=c;}else if(300<=h&&h<360){r=c;g=0;b=x;}const toHex=n=>{const h=Math.round((n+m)*255).toString(16);return h.length===1?'0'+h:h;};return "#"+toHex(r)+toHex(g)+toHex(b);}
+        function generateVibe() {
+            const seed = document.getElementById('vibe-seed').value; const [h,s] = hexToHsl(seed);
+            state.background = hslToHex(h,Math.min(s,30),8); state.foreground = hslToHex(h,Math.min(s,20),85);
+            state.cursor_bg = seed; state.selection_bg = hslToHex(h,Math.min(s,40),25); state.selection_fg = state.foreground;
+            const hues=[0,0,120,60,240,300,180,0]; const vs=Math.max(50,Math.min(s,95));
+            for(let i=0;i<8;i++){
+                if(i===0){state.ansi[i]=hslToHex(h,10,15);state.brights[i]=hslToHex(h,10,35);}
+                else if(i===7){state.ansi[i]=hslToHex(h,10,80);state.brights[i]=hslToHex(h,5,95);}
+                else{state.ansi[i]=hslToHex(hues[i],vs,60);state.brights[i]=hslToHex(hues[i],vs,75);}
+            }
+            resetPreview();
+            refreshInputs(); render();
+        }
+
+        // --- PREVIEW HANDLING ---
+        function handleGridClick(cell) {
+            // Get colors from inline styles of clicked cell
+            const bg = cell.style.backgroundColor;
+            const fg = cell.style.color;
+            
+            // Set overrides
+            previewBg = bg;
+            previewFg = fg;
+            
+            // Update UI
+            document.getElementById('preview-title').innerText = "Custom Cell View";
+            renderCodeView();
+        }
+
+        function resetPreview() {
+            previewBg = null;
+            previewFg = null;
+            document.getElementById('preview-title').innerText = "Theme Preview";
+            renderCodeView();
+        }
+
+        // --- RENDER ---
+        function render() {
+            document.getElementById('center-stage').style.backgroundColor = state.background;
+            
+            // GRID
+            const table = document.getElementById('grid'); table.innerHTML = '';
+            
+            const thead = document.createElement('thead'); const hRow = document.createElement('tr');
+            hRow.innerHTML = '<th></th><th style="color:#666;font-size:11px">def</th>' + state.ansi.map((c,i)=>`<th style="color:${c};font-size:11px">4${i}m</th>`).join('');
+            thead.appendChild(hRow); table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            const addRow = (l, c, bold) => {
+                const tr = document.createElement('tr');
+                let html = `<td class="label-col">${l}</td><td class="g-cell" style="color:${c};background:${state.background};${bold?'font-weight:bold':''}">gYw</td>`;
+                state.ansi.forEach(bg => { html += `<td class="g-cell" style="color:${c};background:${bg};${bold?'font-weight:bold':''}">gYw</td>`; });
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            };
+
+            addRow('m', state.foreground, false);
+            addRow('1m', state.brights[7], true); 
+
+            for(let i=0; i<8; i++) {
+                addRow(`3${i}m`, state.ansi[i], false);
+                addRow(`1;3${i}m`, state.brights[i], true);
+            }
+            table.appendChild(tbody);
+
+            // CODE PREVIEW
+            renderCodeView();
+        }
+
+        function renderCodeView() {
+            const panel = document.getElementById('right-panel');
+            const code = document.getElementById('code-block');
+            
+            // Determine active colors
+            const bg = previewBg || state.background; // Use override or global theme
+            const fg = previewFg || state.foreground;
+            
+            // Apply BG to Panel
+            panel.style.backgroundColor = bg;
+            
+            // Syntax Colors (if previewing cell, we try to use the foreground for text, but keep syntax for flavor)
+            const C = { 
+                k:state.ansi[5], f:state.ansi[4], s:state.ansi[2], 
+                c:state.brights[0], n:state.ansi[3], t:state.ansi[6], 
+                p: fg // Main text color is dynamic
+            };
+
+            code.innerHTML = `
+<span style="color:${C.k}">import</span> <span style="color:${C.p}">os</span>
+<span style="color:${C.k}">import</span> <span style="color:${C.p}">json</span>
+
+<span style="color:${C.c}"># Configuration Loader</span>
+<span style="color:${C.k}">def</span> <span style="color:${C.f}">load_config</span><span style="color:${C.p}">(path):</span>
+    <span style="color:${C.k}">if</span> <span style="color:${C.k}">not</span> <span style="color:${C.p}">path:</span>
+        <span style="color:${C.k}">return</span> <span style="color:${C.k}">None</span>
+
+    <span style="color:${C.p}">data</span> <span style="color:${C.k}">=</span> <span style="color:${C.p}">{</span>
+        <span style="color:${C.s}">"user"</span><span style="color:${C.p}">:</span> <span style="color:${C.s}">"admin"</span><span style="color:${C.p}">,</span>
+        <span style="color:${C.s}">"retries"</span><span style="color:${C.p}">:</span> <span style="color:${C.n}">3</span><span style="color:${C.p}">,</span>
+        <span style="color:${C.s}">"valid"</span><span style="color:${C.p}">:</span> <span style="color:${C.k}">True</span>
+    <span style="color:${C.p}">}</span>
+
+    <span style="color:${C.t}">print</span><span style="color:${C.p}">(</span><span style="color:${C.s}">f"Loading from {path}..."</span><span style="color:${C.p}">)</span>
+    <span style="color:${C.k}">return</span> <span style="color:${C.p}">data</span>
+`;
+        }
+
+        // --- EXPORT ---
+        function updateHint() {
+            const f = document.getElementById('export-format').value;
+            document.getElementById('format-hint').innerText = (f==='inline'?'Inline':(f==='builder'?'Builder':'File'));
+        }
+
+        function exportLua() {
+            const fmt = document.getElementById('export-format').value;
+            const fontName = fonts[currentFontIndex].wez;
+            
+            // Create the content string specifically for the format to ensure correct syntax
+            let finalOutput = "";
+
+            // The colors table definition body (reusable)
+            const colorsBody = `
+    foreground = '${state.foreground}',
+    background = '${state.background}',
+    cursor_bg = '${state.cursor_bg}',
+    cursor_fg = '${state.cursor_fg}',
+    cursor_border = '${state.cursor_bg}',
+    selection_fg = '${state.selection_fg}',
+    selection_bg = '${state.selection_bg}',
+
+    ansi = {
+        '${state.ansi[0]}', -- Black
+        '${state.ansi[1]}', -- Red
+        '${state.ansi[2]}', -- Green
+        '${state.ansi[3]}', -- Yellow
+        '${state.ansi[4]}', -- Blue
+        '${state.ansi[5]}', -- Magenta
+        '${state.ansi[6]}', -- Cyan
+        '${state.ansi[7]}', -- White
+    },
+    brights = {
+        '${state.brights[0]}', -- BrBlack
+        '${state.brights[1]}', -- BrRed
+        '${state.brights[2]}', -- BrGreen
+        '${state.brights[3]}', -- BrYellow
+        '${state.brights[4]}', -- BrBlue
+        '${state.brights[5]}', -- BrMagenta
+        '${state.brights[6]}', -- BrCyan
+        '${state.brights[7]}', -- BrWhite
+    },
+`;
+
+            if (fmt === 'inline') {
+                finalOutput = `return {\n    font = wezterm.font '${fontName}',\n    colors = {\n${colorsBody}    }\n}`;
+            } else if (fmt === 'file') {
+                finalOutput = `return {\n    colors = {\n${colorsBody}    }\n}`;
+            } else { // builder
+                finalOutput = `config.font = wezterm.font '${fontName}'\nconfig.colors = {\n${colorsBody}}`;
+            }
+
+            navigator.clipboard.writeText(finalOutput).then(()=>showToast("Config Copied!"));
+        }
+
+        init();
+    </script>
+</body>
+</html>
