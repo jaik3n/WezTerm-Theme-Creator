@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WezTerm Theme Maker Pro</title>
-    
+    <title>WezTerm Theme Maker</title>
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,11 +12,9 @@
 
     <style>
         /* --- RESET & LAYOUT --- */
-        * { box-sizing: border-box; }
-        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            margin: 0;
-            padding: 0;
             background-color: #0d0d0d;
             color: #ccc;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -24,46 +22,378 @@
             font-size: 13px;
         }
 
-        /* --- LAYOUT GRID --- */
         #app-container {
             display: grid;
-            grid-template-columns: 360px 1fr 400px; /* Sidebar | Grid | Preview */
+            grid-template-columns: 340px 1fr 400px;
             height: 100vh;
             width: 100vw;
         }
 
-        /* --- 1. SIDEBAR --- */
+        /* --- SIDEBAR --- */
         #sidebar {
             background-color: #1a1a1a;
-            border-right: 1px solid #333;
+            border-right: 1px solid #2a2a2a;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            z-index: 10;
         }
 
         .sidebar-scroll {
-            padding: 20px;
+            padding: 16px;
             overflow-y: auto;
             flex: 1;
         }
 
-        /* --- 2. CENTER: GALAXY GRID --- */
+        .sidebar-scroll::-webkit-scrollbar { width: 6px; }
+        .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+        h1 {
+            font-size: 15px;
+            color: #fff;
+            margin-bottom: 16px;
+            text-align: center;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- TOOL BOX --- */
+        .tool-box {
+            background: #222;
+            border: 1px solid #2a2a2a;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .box-label {
+            font-size: 9px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        /* --- START CARDS --- */
+        .start-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .start-card {
+            background: #2a2a2a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 10px 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            user-select: none;
+        }
+
+        .start-card:hover {
+            background: #333;
+            border-color: #555;
+        }
+
+        .start-card.active {
+            border-color: #4a9eff;
+            background: #1a2a3a;
+        }
+
+        .start-card-icon {
+            font-size: 18px;
+            margin-bottom: 4px;
+            display: block;
+            opacity: 0.8;
+        }
+
+        .start-card-label {
+            font-size: 10px;
+            color: #aaa;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .start-card:hover .start-card-label { color: #ddd; }
+        .start-card.active .start-card-label { color: #4a9eff; }
+
+        /* --- SUB-PANELS --- */
+        .sub-panel {
+            display: none;
+            padding: 10px 0 2px 0;
+            animation: fadeIn 0.15s ease;
+        }
+
+        .sub-panel.open { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* --- COLLAPSIBLE SECTIONS --- */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            padding: 2px 0;
+        }
+
+        .section-header .box-label { margin-bottom: 0; cursor: pointer; }
+
+        .collapse-chevron {
+            font-size: 8px;
+            color: #555;
+            transition: transform 0.2s;
+        }
+
+        .collapsed .collapse-chevron { transform: rotate(-90deg); }
+        .collapsed .section-body { display: none; }
+
+        /* --- SWATCH GRID --- */
+        .swatch-group {
+            margin-bottom: 8px;
+        }
+
+        .swatch-group-label {
+            font-size: 9px;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .swatch-row {
+            display: flex;
+            gap: 4px;
+        }
+
+        .swatch-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .color-swatch {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.12s;
+        }
+
+        .color-swatch:hover {
+            border-color: rgba(255,255,255,0.5);
+            transform: scale(1.08);
+        }
+
+        .color-swatch.editing {
+            border-color: #4a9eff;
+            box-shadow: 0 0 8px rgba(74, 158, 255, 0.3);
+        }
+
+        .swatch-label {
+            font-size: 8px;
+            color: #555;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        /* --- SWATCH EDITOR POPOVER --- */
+        .swatch-editor {
+            position: absolute;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            z-index: 200;
+            width: 200px;
+        }
+
+        .swatch-editor-label {
+            font-size: 11px;
+            color: #aaa;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .swatch-editor input[type="color"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 40px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            cursor: pointer;
+            background: none;
+            padding: 2px;
+        }
+
+        .swatch-editor input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        .swatch-editor input[type="color"]::-webkit-color-swatch { border: none; border-radius: 3px; }
+
+        .swatch-editor input[type="text"] {
+            width: 100%;
+            margin-top: 6px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            color: #ddd;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            padding: 6px 8px;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        .swatch-editor input[type="text"]:focus {
+            outline: none;
+            border-color: #4a9eff;
+        }
+
+        /* --- BUTTONS --- */
+        .btn-action {
+            background: #333;
+            border: 1px solid #444;
+            color: #eee;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.15s;
+            width: 100%;
+        }
+
+        .btn-action:hover { background: #444; color: #fff; border-color: #666; }
+
+        select {
+            width: 100%;
+            padding: 6px 8px;
+            background: #1a1a1a;
+            color: #eee;
+            border: 1px solid #3a3a3a;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        /* --- FONT INSTALL TABS --- */
+        .os-tabs { display: flex; margin-bottom: 5px; border-bottom: 1px solid #3a3a3a; }
+        .os-tab {
+            flex: 1; background: transparent; border: none; color: #666;
+            padding: 4px; font-size: 9px; cursor: pointer; text-transform: uppercase;
+        }
+        .os-tab.active { color: #fff; border-bottom: 2px solid #4a9eff; font-weight: bold; }
+        .install-code {
+            background: #1a1a1a; color: #7af; padding: 8px; border-radius: 4px;
+            font-family: monospace; font-size: 10px; overflow-x: auto; white-space: nowrap;
+            border: 1px solid #2a2a2a; cursor: pointer;
+        }
+
+        /* --- UNDO BAR --- */
+        .undo-bar {
+            padding: 8px 12px;
+            border-top: 1px solid #2a2a2a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .undo-bar button {
+            background: #333;
+            border: 1px solid #444;
+            color: #ccc;
+            padding: 5px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.15s;
+            flex: 1;
+        }
+
+        .undo-bar button:hover:not(:disabled) { background: #444; color: #fff; }
+        .undo-bar button:disabled { opacity: 0.25; cursor: default; }
+
+        .undo-count {
+            font-size: 10px;
+            color: #555;
+        }
+
+        /* --- CENTER: GALAXY GRID --- */
         #center-stage {
-            background-color: #000; /* Dynamic BG */
+            background-color: #000;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             overflow: auto;
             position: relative;
-            transition: background-color 0.1s;
+            transition: background-color 0.15s;
         }
 
-        /* --- 3. RIGHT: LIVE PREVIEW --- */
+        table.galaxy-grid {
+            border-collapse: collapse;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            background: transparent;
+            box-shadow: 0 0 60px rgba(0,0,0,0.4);
+        }
+
+        .galaxy-grid thead th {
+            padding: 4px 8px;
+            font-weight: normal;
+            color: #666;
+            font-size: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            text-transform: capitalize;
+        }
+
+        .galaxy-grid td {
+            padding: 3px 6px;
+            white-space: pre;
+            text-align: center;
+        }
+
+        .galaxy-grid .label-col {
+            text-align: right;
+            color: #555;
+            padding-right: 10px;
+            font-size: 10px;
+            border-right: 1px solid rgba(255,255,255,0.08);
+            white-space: nowrap;
+        }
+
+        .galaxy-grid .g-cell { cursor: pointer; }
+        .galaxy-grid .g-cell:hover {
+            outline: 2px solid rgba(255,255,255,0.7);
+            z-index: 100;
+            position: relative;
+        }
+
+        .grid-hint {
+            margin-top: 16px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.2);
+        }
+
+        .grid-hint span { color: rgba(255,255,255,0.5); }
+
+        /* --- RIGHT PANEL --- */
         #right-panel {
             background-color: #111;
-            border-left: 1px solid #333;
+            border-left: 1px solid #2a2a2a;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -71,25 +401,59 @@
         }
 
         .panel-header {
-            padding: 10px 15px;
-            border-bottom: 1px solid #333;
+            padding: 10px 14px;
+            border-bottom: 1px solid #2a2a2a;
             font-weight: 600;
             color: #fff;
             background: #1a1a1a;
             text-transform: uppercase;
-            font-size: 11px;
+            font-size: 10px;
             letter-spacing: 1px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
+        .header-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
         .reset-btn {
-            background: #333; border: 1px solid #444; color: #aaa;
-            padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 10px;
-            text-transform: uppercase; transition: 0.2s;
+            background: #333; border: 1px solid #3a3a3a; color: #888;
+            padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 9px;
+            text-transform: uppercase; transition: 0.15s;
         }
         .reset-btn:hover { background: #444; color: #fff; }
+
+        .copy-btn {
+            background: #4a9eff;
+            color: #fff;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.15s;
+        }
+
+        .copy-btn:hover { background: #3a8eef; }
+
+        .export-row {
+            padding: 6px 14px;
+            border-bottom: 1px solid #2a2a2a;
+            background: #1a1a1a;
+        }
+
+        .export-row select {
+            width: 100%;
+            padding: 4px 6px;
+            font-size: 10px;
+        }
 
         .fake-code {
             flex: 1;
@@ -103,213 +467,150 @@
             transition: color 0.2s;
         }
 
-        /* --- UI COMPONENTS --- */
-        h1 { font-size: 16px; color: #fff; margin: 0 0 20px 0; text-align: center; font-weight: 700; }
-        
-        .tool-box {
-            background: #252526;
-            border: 1px solid #333;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 12px;
-        }
-
-        label.box-label {
-            font-size: 10px; color: #888; text-transform: uppercase; 
-            letter-spacing: 1px; display: block; margin-bottom: 8px; font-weight: 600;
-        }
-
-        .btn-action {
-            background: #333; border: 1px solid #444; color: #eee;
-            padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 11px; font-weight: 500;
-            transition: all 0.2s; width: 100%;
-        }
-        .btn-action:hover { background: #444; color: #fff; border-color: #666; }
-
-        select {
-            width: 100%; padding: 6px; background: #111; color: #eee;
-            border: 1px solid #444; border-radius: 4px; font-size: 11px;
-        }
-
-        /* Font Install Tabs */
-        .os-tabs { display: flex; margin-bottom: 5px; border-bottom: 1px solid #444; }
-        .os-tab {
-            flex: 1; background: transparent; border: none; color: #888;
-            padding: 4px; font-size: 9px; cursor: pointer; text-transform: uppercase;
-        }
-        .os-tab.active { color: #fff; border-bottom: 2px solid #4a9eff; font-weight: bold; }
-        .install-code {
-            background: #111; color: #7af; padding: 8px; border-radius: 4px;
-            font-family: monospace; font-size: 10px; overflow-x: auto; white-space: nowrap;
-            border: 1px solid #333; margin-bottom: 5px; cursor: pointer;
-        }
-
-        /* Color Controls */
-        .control-row { display: flex; align-items: center; margin-bottom: 4px; gap: 8px; }
-        .control-label { flex: 1; font-size: 11px; color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        input[type="text"] {
-            width: 55px; background: #1a1a1a; border: 1px solid #444; color: #ddd;
-            font-family: monospace; font-size: 10px; padding: 3px; text-align: center; border-radius: 3px;
-        }
-        input[type="color"] {
-            -webkit-appearance: none; width: 20px; height: 20px; border: none; background: none; cursor: pointer; padding: 0;
-        }
-        input[type="color"]::-webkit-color-swatch { border: 1px solid #555; border-radius: 3px; }
-
-        /* --- THE GALAXY GRID --- */
-        table.galaxy-grid {
-            border-collapse: collapse;
-            border-spacing: 0;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
-            background: transparent;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
-        }
-
-        .galaxy-grid thead th {
-            padding: 4px 8px;
-            font-weight: normal;
-            color: #888;
-            font-size: 11px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .galaxy-grid td {
-            padding: 3px 6px;
-            white-space: pre;
-            text-align: center;
-        }
-
-        .galaxy-grid .label-col {
-            text-align: right;
-            color: #666;
-            padding-right: 10px;
-            font-size: 11px;
-            border-right: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .galaxy-grid .g-cell {
-            cursor: pointer;
-        }
-        .galaxy-grid .g-cell:hover {
-            outline: 2px solid #fff;
-            z-index: 100;
-            position: relative;
-        }
-
         /* --- TOAST --- */
         #toast {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            background: #4a9eff; color: white; padding: 10px 20px; border-radius: 20px;
+            background: #4a9eff; color: white; padding: 10px 24px; border-radius: 20px;
             font-size: 12px; opacity: 0; pointer-events: none; transition: opacity 0.3s;
-            font-weight: 600; box-shadow: 0 5px 15px rgba(0,0,0,0.4); z-index: 999;
+            font-weight: 600; box-shadow: 0 5px 20px rgba(0,0,0,0.5); z-index: 999;
         }
 
-        h2 { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #555; margin: 15px 0 5px 0; border-bottom: 1px solid #333; }
-        
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        /* --- MISC --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #111; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
     </style>
 </head>
 <body>
     <div id="app-container">
-        
-        <!-- 1. LEFT SIDEBAR (Controls) -->
+
+        <!-- 1. LEFT SIDEBAR -->
         <div id="sidebar">
             <div class="sidebar-scroll">
                 <h1>WezTerm Theme Maker</h1>
 
-                <!-- PRESETS -->
+                <!-- CREATE SECTION -->
                 <div class="tool-box">
-                    <label class="box-label">
-                        Presets (<span id="theme-count">--</span>)
-                    </label>
-                    <select id="preset-select">
-                        <option value="" disabled selected>Select a theme...</option>
-                    </select>
-                    <div style="display:flex; gap:5px; margin-top:5px;">
-                        <button class="btn-action" onclick="cycleTheme(-1)">&#9664;</button>
-                        <button class="btn-action" onclick="cycleTheme(1)">&#9654;</button>
+                    <label class="box-label">Create</label>
+                    <div class="start-grid">
+                        <div class="start-card" onclick="toggleStartPanel('preset-panel', this)">
+                            <span class="start-card-icon">&#9881;</span>
+                            <span class="start-card-label">Presets</span>
+                        </div>
+                        <div class="start-card" onclick="toggleStartPanel('vibe-panel', this)">
+                            <span class="start-card-icon">&#9733;</span>
+                            <span class="start-card-label">Generate</span>
+                        </div>
+                        <div class="start-card" onclick="doRandomize(this)">
+                            <span class="start-card-icon">&#9861;</span>
+                            <span class="start-card-label">Random</span>
+                        </div>
+                    </div>
+
+                    <!-- Preset Sub-Panel -->
+                    <div id="preset-panel" class="sub-panel">
+                        <select id="preset-select">
+                            <option value="" disabled selected>Select a theme...</option>
+                        </select>
+                        <div style="display:flex; gap:5px; margin-top:6px;">
+                            <button class="btn-action" onclick="cycleTheme(-1)">&#9664;</button>
+                            <button class="btn-action" onclick="cycleTheme(1)">&#9654;</button>
+                        </div>
+                        <div style="margin-top:4px; font-size:10px; color:#555; text-align:center;">
+                            <span id="theme-count">0</span> themes available
+                        </div>
+                    </div>
+
+                    <!-- Vibe Generator Sub-Panel -->
+                    <div id="vibe-panel" class="sub-panel">
+                        <div style="font-size:10px; color:#666; margin-bottom:6px;">Pick a seed color to generate a harmonious palette</div>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <input type="color" id="vibe-seed" value="#5c5cff" style="flex:1; height:32px; border:1px solid #444; border-radius:4px; cursor:pointer; -webkit-appearance:none; background:none; padding:2px;">
+                            <button class="btn-action" style="flex:2;" onclick="generateVibe()">Generate</button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- TOOLS -->
-                <div class="tool-box">
-                    <label class="box-label">Tools</label>
-                    <button class="btn-action" onclick="randomizePalette()" style="margin-bottom:10px;">Randomize Palette</button>
-                    
-                    <label class="box-label" style="margin-top:10px;">Vibe Generator</label>
-                    <div style="display:flex; gap:5px;">
-                         <input type="color" id="vibe-seed" value="#5c5cff" style="flex:1; height:24px; border:1px solid #444; border-radius:3px;">
-                         <button class="btn-action" style="flex:2;" onclick="generateVibe()">Generate</button>
+                <!-- COLOR PALETTE SECTION -->
+                <div class="tool-box" id="palette-section">
+                    <div class="section-header" onclick="toggleCollapse(this)">
+                        <label class="box-label">Color Palette</label>
+                        <span class="collapse-chevron">&#9660;</span>
+                    </div>
+                    <div class="section-body">
+                        <div id="palette-grid"></div>
                     </div>
                 </div>
 
-                <!-- FONT -->
-                <div class="tool-box">
-                    <label class="box-label">Font</label>
-                    <select id="font-select" onchange="updateFont()"></select>
-                    <div class="os-tabs">
-                        <button class="os-tab active" onclick="setOs('mac', this)">MacOS</button>
-                        <button class="os-tab" onclick="setOs('win', this)">Win</button>
-                        <button class="os-tab" onclick="setOs('linux', this)">Linux</button>
+                <!-- FONT SECTION -->
+                <div class="tool-box collapsed" id="font-section">
+                    <div class="section-header" onclick="toggleCollapse(this)">
+                        <label class="box-label">Font</label>
+                        <span class="collapse-chevron">&#9660;</span>
                     </div>
-                    <div id="install-cmd" class="install-code" onclick="copyInstallCmd()" title="Copy Command"></div>
+                    <div class="section-body" style="padding-top:8px;">
+                        <select id="font-select" onchange="updateFont()"></select>
+                        <div class="os-tabs" style="margin-top:6px;">
+                            <button class="os-tab active" onclick="setOs('mac', this)">MacOS</button>
+                            <button class="os-tab" onclick="setOs('win', this)">Win</button>
+                            <button class="os-tab" onclick="setOs('linux', this)">Linux</button>
+                        </div>
+                        <div id="install-cmd" class="install-code" onclick="copyInstallCmd()" title="Click to copy install command"></div>
+                    </div>
                 </div>
 
-                <!-- MANUAL INPUTS -->
-                <div id="controls-base" style="padding:0 12px;"></div>
-                <div id="controls-ansi" style="padding:0 12px;"></div>
-                <div id="controls-bright" style="padding:0 12px;"></div>
-                <div style="height:40px;"></div>
+                <div style="height: 20px;"></div>
             </div>
-            
-            <!-- EXPORT BAR FIXED BOTTOM LEFT -->
-            <div style="padding:12px; border-top:1px solid #333; background:#1a1a1a;">
-                <select id="export-format" onchange="updateHint()">
+
+            <!-- UNDO BAR -->
+            <div class="undo-bar">
+                <button id="undo-btn" disabled onclick="undo()">Undo</button>
+                <span class="undo-count" id="undo-count"></span>
+            </div>
+        </div>
+
+        <!-- 2. CENTER STAGE -->
+        <div id="center-stage">
+            <table class="galaxy-grid" id="grid"></table>
+            <div class="grid-hint">
+                Click any cell to <span>preview colors</span>
+            </div>
+            <div id="toast">Copied!</div>
+        </div>
+
+        <!-- 3. RIGHT PANEL -->
+        <div id="right-panel">
+            <div class="panel-header">
+                <span id="preview-title">Theme Preview</span>
+                <div class="header-actions">
+                    <button class="reset-btn" onclick="resetPreview()">Reset</button>
+                    <button class="copy-btn" onclick="exportLua()">Copy Config</button>
+                </div>
+            </div>
+            <div class="export-row">
+                <select id="export-format">
                     <option value="builder" selected>Builder (config.colors)</option>
                     <option value="inline">Inline (return {})</option>
                     <option value="file">File (module)</option>
                 </select>
             </div>
-        </div>
-
-        <!-- 2. CENTER STAGE (Grid) -->
-        <div id="center-stage">
-            <table class="galaxy-grid" id="grid">
-                <!-- Generated by JS -->
-            </table>
-            <div style="margin-top:20px; font-size:11px; color:rgba(255,255,255,0.3);">
-                Click grid to <span style="color:#fff;">Copy Code</span> & <span style="color:#fff;">Preview Colors</span>
-            </div>
-            <div id="toast">Copied!</div>
-        </div>
-
-        <!-- 3. RIGHT PANEL (Preview) -->
-        <div id="right-panel">
-            <div class="panel-header">
-                <span id="preview-title">Theme Preview</span>
-                <button class="reset-btn" onclick="resetPreview()">Reset View</button>
-            </div>
-            <div class="fake-code" id="code-block">
-                <!-- Code Generated by JS -->
-            </div>
+            <div class="fake-code" id="code-block"></div>
         </div>
 
     </div>
 
     <script>
-        // --- 1. DATA: FONTS ---
+        // =============================================
+        // DATA
+        // =============================================
         const fonts = [
-            { name: "JetBrains Mono", css: "'JetBrains Mono', monospace", wez: "JetBrainsMono Nerd Font", 
+            { name: "JetBrains Mono", css: "'JetBrains Mono', monospace", wez: "JetBrainsMono Nerd Font",
               mac: "brew install --cask font-jetbrains-mono-nerd-font", win: "winget install -e --id RyanL.NerdFonts.JetBrainsMono", lin: "curl -OL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz && tar -xf JetBrainsMono.tar.xz -C ~/.local/share/fonts && fc-cache -fv" },
-            { name: "Fira Code", css: "'Fira Code', monospace", wez: "FiraCode Nerd Font", 
+            { name: "Fira Code", css: "'Fira Code', monospace", wez: "FiraCode Nerd Font",
               mac: "brew install --cask font-fira-code-nerd-font", win: "winget install -e --id RyanL.NerdFonts.FiraCode", lin: "curl -OL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/FiraCode.tar.xz && tar -xf FiraCode.tar.xz -C ~/.local/share/fonts && fc-cache -fv" },
             { name: "Source Code Pro", css: "'Source Code Pro', monospace", wez: "SauceCodePro Nerd Font",
               mac: "brew install --cask font-sauce-code-pro-nerd-font", win: "winget install -e --id RyanL.NerdFonts.SourceCodePro", lin: "curl -OL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/SourceCodePro.tar.xz && tar -xf SourceCodePro.tar.xz -C ~/.local/share/fonts && fc-cache -fv" },
-            { name: "Hack", css: "'Source Code Pro', monospace", wez: "Hack Nerd Font", 
+            { name: "Hack", css: "'Source Code Pro', monospace", wez: "Hack Nerd Font",
               mac: "brew install --cask font-hack-nerd-font", win: "winget install -e --id RyanL.NerdFonts.Hack", lin: "curl -OL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Hack.tar.xz && tar -xf Hack.tar.xz -C ~/.local/share/fonts && fc-cache -fv" },
             { name: "Roboto Mono", css: "'Roboto Mono', monospace", wez: "RobotoMono Nerd Font",
               mac: "brew install --cask font-roboto-mono-nerd-font", win: "winget install -e --id RyanL.NerdFonts.RobotoMono", lin: "curl -OL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/RobotoMono.tar.xz && tar -xf RobotoMono.tar.xz -C ~/.local/share/fonts && fc-cache -fv" },
@@ -317,108 +618,347 @@
               mac: "brew install --cask font-ubuntu-mono-nerd-font", win: "winget install -e --id RyanL.NerdFonts.UbuntuMono", lin: "curl -OL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/UbuntuMono.tar.xz && tar -xf UbuntuMono.tar.xz -C ~/.local/share/fonts && fc-cache -fv" }
         ];
 
-        // --- 2. DATA: THEMES (Placeholders) ---
-        let presets = {}; 
         const internalThemeData = {
             "Dracula": { bg: "#282a36", fg: "#f8f8f2", c_bg: "#f8f8f2", c_fg: "#282a36", s_bg: "#44475a", s_fg: "#f8f8f2", ansi: ["#21222c","#ff5555","#50fa7b","#f1fa8c","#bd93f9","#ff79c6","#8be9fd","#f8f8f2"], brights: ["#6272a4","#ff6e6e","#69ff94","#ffffa5","#d6acff","#ff92df","#a4ffff","#ffffff"] },
             "Tokyo Night": { bg: "#1a1b26", fg: "#c0caf5", c_bg: "#c0caf5", c_fg: "#1a1b26", s_bg: "#33467C", s_fg: "#c0caf5", ansi: ["#15161E","#f7768e","#9ece6a","#e0af68","#7aa2f7","#bb9af7","#7dcfff","#a9b1d6"], brights: ["#414868","#f7768e","#9ece6a","#e0af68","#7aa2f7","#bb9af7","#7dcfff","#c0caf5"] }
         };
 
-        // --- STATE ---
+        const ansiNames = ["Black", "Red", "Green", "Yellow", "Blue", "Magenta", "Cyan", "White"];
+        const baseKeys = [
+            ['foreground', 'FG'],
+            ['background', 'BG'],
+            ['cursor_bg', 'Cur BG'],
+            ['cursor_fg', 'Cur FG'],
+            ['selection_bg', 'Sel BG'],
+            ['selection_fg', 'Sel FG']
+        ];
+
+        // =============================================
+        // STATE
+        // =============================================
         let state = {
-            foreground: '#d0d0d0', background: '#151515', 
-            cursor_bg: '#d0d0d0', cursor_fg: '#151515', 
+            foreground: '#d0d0d0', background: '#151515',
+            cursor_bg: '#d0d0d0', cursor_fg: '#151515',
             selection_bg: '#444444', selection_fg: '#ffffff',
             ansi: ['#000000','#ac4142','#90a959','#f4bf75','#6a9fb5','#aa759f','#75b5aa','#d0d0d0'],
             brights: ['#505050','#ac4142','#90a959','#f4bf75','#6a9fb5','#aa759f','#75b5aa','#f5f5f5']
         };
+
+        let presets = {};
         let currentFontIndex = 0;
         let currentOs = 'mac';
-        
-        // Preview State Overrides (null means use global theme)
-        let previewBg = null; 
+        let previewBg = null;
         let previewFg = null;
+        let activeEditor = null;
 
-        const ansiNames = ["Black", "Red", "Green", "Yellow", "Blue", "Magenta", "Cyan", "White"];
-        const baseKeys = [['foreground','Foreground'],['background','Background'],['cursor_bg','Cursor BG'],['cursor_fg','Cursor FG'],['selection_bg','Selection BG'],['selection_fg','Selection FG']];
+        // Undo stack
+        let undoStack = [];
+        const MAX_UNDO = 20;
 
-        // --- INIT ---
+        function pushUndo() {
+            undoStack.push(JSON.parse(JSON.stringify(state)));
+            if (undoStack.length > MAX_UNDO) undoStack.shift();
+            updateUndoUI();
+        }
+
+        function undo() {
+            if (!undoStack.length) return;
+            state = undoStack.pop();
+            resetPreview();
+            refreshSwatches();
+            render();
+            updateUndoUI();
+        }
+
+        function updateUndoUI() {
+            const btn = document.getElementById('undo-btn');
+            const count = document.getElementById('undo-count');
+            btn.disabled = undoStack.length === 0;
+            count.textContent = undoStack.length > 0 ? undoStack.length + ' step' + (undoStack.length > 1 ? 's' : '') : '';
+        }
+
+        // =============================================
+        // INIT
+        // =============================================
         async function init() {
             // Fonts
             const fSel = document.getElementById('font-select');
-            fonts.forEach((f, i) => { const o = document.createElement('option'); o.value = i; o.innerText = f.name; fSel.appendChild(o); });
+            fonts.forEach((f, i) => {
+                const o = document.createElement('option');
+                o.value = i;
+                o.innerText = f.name;
+                fSel.appendChild(o);
+            });
             updateFont();
 
-            // Load Themes
-            await fetchThemes(); 
+            // Themes
+            await fetchThemes();
 
-            // Build Controls
-            buildControls();
+            // Build swatch grid
+            buildSwatchGrid();
 
             // Render
             render();
 
-            // Listeners
-            document.getElementById('preset-select').addEventListener('keydown', (e) => { 
-                if(e.key==='ArrowUp'||e.key==='ArrowDown') setTimeout(()=>loadPreset(document.getElementById('preset-select').value),0); 
+            // Preset select listener
+            document.getElementById('preset-select').addEventListener('change', (e) => loadPreset(e.target.value));
+            document.getElementById('preset-select').addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                    setTimeout(() => loadPreset(document.getElementById('preset-select').value), 0);
+                }
             });
-            
-            // Grid Click Handler (Delegation)
+
+            // Grid click - ONLY preview, no copy
             document.getElementById('grid').addEventListener('click', (e) => {
-                if(e.target.classList.contains('g-cell')) {
-                    // 1. Export Config
-                    exportLua();
-                    // 2. Update Preview Colors
+                if (e.target.classList.contains('g-cell')) {
                     handleGridClick(e.target);
                 }
             });
+
+            // Close swatch editor on outside click
+            document.addEventListener('click', (e) => {
+                if (activeEditor && !e.target.closest('.swatch-editor') && !e.target.closest('.color-swatch')) {
+                    closeSwatchEditor();
+                }
+            });
+
+            updateUndoUI();
         }
 
         async function fetchThemes() {
-            // Future: fetch('themes.json')
             presets = internalThemeData;
             const pSel = document.getElementById('preset-select');
             pSel.innerHTML = '<option value="" disabled selected>Select a theme...</option>';
-            Object.keys(presets).sort().forEach(k => { 
-                const o = document.createElement('option'); 
-                o.value = k; o.innerText = k; 
-                pSel.appendChild(o); 
+            Object.keys(presets).sort().forEach(k => {
+                const o = document.createElement('option');
+                o.value = k;
+                o.innerText = k;
+                pSel.appendChild(o);
             });
-            pSel.addEventListener('change', (e) => loadPreset(e.target.value));
             document.getElementById('theme-count').innerText = Object.keys(presets).length;
         }
 
-        function buildControls() {
-            const mk = (id, label, val, cb) => {
-                const row = document.createElement('div'); row.className = 'control-row';
-                const lbl = document.createElement('div'); lbl.className = 'control-label'; lbl.innerText = label;
-                const txt = document.createElement('input'); txt.type='text'; txt.value=val; txt.id='hex-'+id;
-                const col = document.createElement('input'); col.type='color'; col.value=val; col.id='col-'+id;
-                const up = (v) => { txt.value=v; col.value=v; cb(v); render(); };
-                txt.onchange=e=>up(e.target.value); col.oninput=e=>up(e.target.value);
-                row.append(lbl, txt, col);
-                return row;
+        // =============================================
+        // SWATCH GRID
+        // =============================================
+        function buildSwatchGrid() {
+            const container = document.getElementById('palette-grid');
+            container.innerHTML = '';
+
+            // Base colors
+            const baseGroup = makeSwatchGroup('Base Colors');
+            const baseRow = document.createElement('div');
+            baseRow.className = 'swatch-row';
+            baseKeys.forEach(([key, name]) => {
+                baseRow.appendChild(makeSwatchItem(name, state[key], 'base', key));
+            });
+            baseGroup.appendChild(baseRow);
+            container.appendChild(baseGroup);
+
+            // ANSI colors
+            const ansiGroup = makeSwatchGroup('ANSI Colors');
+            const ansiRow = document.createElement('div');
+            ansiRow.className = 'swatch-row';
+            state.ansi.forEach((c, i) => {
+                ansiRow.appendChild(makeSwatchItem(ansiNames[i], c, 'ansi', i));
+            });
+            ansiGroup.appendChild(ansiRow);
+            container.appendChild(ansiGroup);
+
+            // Bright colors
+            const brightGroup = makeSwatchGroup('Bright Colors');
+            const brightRow = document.createElement('div');
+            brightRow.className = 'swatch-row';
+            state.brights.forEach((c, i) => {
+                brightRow.appendChild(makeSwatchItem('Br' + ansiNames[i], c, 'bright', i));
+            });
+            brightGroup.appendChild(brightRow);
+            container.appendChild(brightGroup);
+        }
+
+        function makeSwatchGroup(label) {
+            const group = document.createElement('div');
+            group.className = 'swatch-group';
+            const lbl = document.createElement('div');
+            lbl.className = 'swatch-group-label';
+            lbl.textContent = label;
+            group.appendChild(lbl);
+            return group;
+        }
+
+        function makeSwatchItem(name, color, type, key) {
+            const item = document.createElement('div');
+            item.className = 'swatch-item';
+
+            const swatch = document.createElement('div');
+            swatch.className = 'color-swatch';
+            swatch.style.backgroundColor = color;
+            swatch.dataset.type = type;
+            swatch.dataset.key = key;
+            swatch.title = name + ': ' + color;
+            swatch.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openSwatchEditor(swatch, name, type, key);
+            });
+
+            const label = document.createElement('div');
+            label.className = 'swatch-label';
+            label.textContent = name;
+
+            item.appendChild(swatch);
+            item.appendChild(label);
+            return item;
+        }
+
+        function getSwatchColor(type, key) {
+            if (type === 'base') return state[key];
+            if (type === 'ansi') return state.ansi[key];
+            return state.brights[key];
+        }
+
+        function setSwatchColor(type, key, value) {
+            if (type === 'base') state[key] = value;
+            else if (type === 'ansi') state.ansi[key] = value;
+            else state.brights[key] = value;
+        }
+
+        function openSwatchEditor(swatch, name, type, key) {
+            closeSwatchEditor();
+
+            const color = getSwatchColor(type, key);
+            swatch.classList.add('editing');
+
+            const editor = document.createElement('div');
+            editor.className = 'swatch-editor';
+
+            const label = document.createElement('div');
+            label.className = 'swatch-editor-label';
+            label.textContent = name;
+
+            const colorInput = document.createElement('input');
+            colorInput.type = 'color';
+            colorInput.value = color;
+
+            const hexInput = document.createElement('input');
+            hexInput.type = 'text';
+            hexInput.value = color;
+            hexInput.maxLength = 7;
+
+            const update = (v) => {
+                colorInput.value = v;
+                hexInput.value = v;
+                swatch.style.backgroundColor = v;
+                swatch.title = name + ': ' + v;
+                setSwatchColor(type, key, v);
+                render();
             };
-            const baseDiv = document.getElementById('controls-base');
-            baseKeys.forEach(([k, n]) => baseDiv.appendChild(mk(k, n, state[k], v=>state[k]=v)));
-            const ansiDiv = document.getElementById('controls-ansi');
-            state.ansi.forEach((c,i) => ansiDiv.appendChild(mk('ansi-'+i, `${i} ${ansiNames[i]}`, c, v=>state.ansi[i]=v)));
-            const brightDiv = document.getElementById('controls-bright');
-            state.brights.forEach((c,i) => brightDiv.appendChild(mk('bright-'+i, `${i+8} Br${ansiNames[i]}`, c, v=>state.brights[i]=v)));
+
+            // Push undo on first change, not every intermediate change
+            let undoPushed = false;
+            const ensureUndo = () => {
+                if (!undoPushed) {
+                    pushUndo();
+                    undoPushed = true;
+                }
+            };
+
+            colorInput.addEventListener('input', (e) => {
+                ensureUndo();
+                update(e.target.value);
+            });
+
+            hexInput.addEventListener('change', (e) => {
+                let v = e.target.value.trim();
+                if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+                    ensureUndo();
+                    update(v);
+                } else {
+                    hexInput.value = getSwatchColor(type, key);
+                }
+            });
+
+            editor.appendChild(label);
+            editor.appendChild(colorInput);
+            editor.appendChild(hexInput);
+
+            // Position editor relative to the sidebar scroll container
+            const sidebar = document.querySelector('.sidebar-scroll');
+            const rect = swatch.getBoundingClientRect();
+            const sidebarRect = sidebar.getBoundingClientRect();
+
+            editor.style.left = (rect.left - sidebarRect.left + rect.width / 2 - 100) + 'px';
+            editor.style.left = Math.max(4, Math.min(rect.left - sidebarRect.left + rect.width / 2 - 100, sidebarRect.width - 208)) + 'px';
+
+            // Position below or above depending on space
+            const spaceBelow = sidebarRect.bottom - rect.bottom;
+            if (spaceBelow > 130) {
+                editor.style.top = (rect.bottom - sidebarRect.top + sidebar.scrollTop + 4) + 'px';
+            } else {
+                editor.style.top = (rect.top - sidebarRect.top + sidebar.scrollTop - 110) + 'px';
+            }
+
+            sidebar.style.position = 'relative';
+            sidebar.appendChild(editor);
+            activeEditor = { editor, swatch };
         }
 
-        function refreshInputs() {
-            baseKeys.forEach(([k]) => { document.getElementById('hex-'+k).value=state[k]; document.getElementById('col-'+k).value=state[k]; });
-            state.ansi.forEach((c,i)=>{ document.getElementById('hex-ansi-'+i).value=c; document.getElementById('col-ansi-'+i).value=c; });
-            state.brights.forEach((c,i)=>{ document.getElementById('hex-bright-'+i).value=c; document.getElementById('col-bright-'+i).value=c; });
+        function closeSwatchEditor() {
+            if (activeEditor) {
+                activeEditor.editor.remove();
+                activeEditor.swatch.classList.remove('editing');
+                activeEditor = null;
+            }
         }
 
+        function refreshSwatches() {
+            document.querySelectorAll('.color-swatch').forEach(swatch => {
+                const type = swatch.dataset.type;
+                const key = swatch.dataset.key;
+                const color = getSwatchColor(type, type === 'base' ? key : parseInt(key));
+                swatch.style.backgroundColor = color;
+                const name = swatch.closest('.swatch-item').querySelector('.swatch-label').textContent;
+                swatch.title = name + ': ' + color;
+            });
+        }
+
+        // =============================================
+        // START PANEL / TOOLS
+        // =============================================
+        function toggleStartPanel(panelId, card) {
+            const panel = document.getElementById(panelId);
+            const wasOpen = panel.classList.contains('open');
+
+            // Close all panels and deactivate all cards
+            document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('open'));
+            document.querySelectorAll('.start-card').forEach(c => c.classList.remove('active'));
+
+            // Toggle the clicked one
+            if (!wasOpen) {
+                panel.classList.add('open');
+                card.classList.add('active');
+            }
+        }
+
+        function doRandomize(card) {
+            // Flash the card briefly
+            card.classList.add('active');
+            setTimeout(() => card.classList.remove('active'), 300);
+            randomizePalette();
+        }
+
+        function toggleCollapse(header) {
+            header.closest('.tool-box').classList.toggle('collapsed');
+        }
+
+        // =============================================
+        // FONTS
+        // =============================================
         function updateFont() {
             currentFontIndex = document.getElementById('font-select').value;
             const f = fonts[currentFontIndex];
             document.querySelector('.galaxy-grid').style.fontFamily = f.css;
             document.querySelector('.fake-code').style.fontFamily = f.css;
-            document.getElementById('install-cmd').innerText = f[currentOs];
+            document.getElementById('install-cmd').innerText = f[currentOs === 'mac' ? 'mac' : currentOs === 'win' ? 'win' : 'lin'];
         }
 
         function setOs(os, btn) {
@@ -429,64 +969,105 @@
         }
 
         function copyInstallCmd() {
-            navigator.clipboard.writeText(document.getElementById('install-cmd').innerText).then(()=>showToast("Copied!"));
+            navigator.clipboard.writeText(document.getElementById('install-cmd').innerText).then(() => showToast("Copied!"));
         }
 
         function showToast(msg) {
-            const t = document.getElementById('toast'); t.innerText = msg; t.style.opacity = '1';
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.opacity = '1';
             setTimeout(() => t.style.opacity = '0', 1500);
         }
 
-        // --- PRESETS & COLORS ---
+        // =============================================
+        // PRESETS & COLOR GENERATION
+        // =============================================
         function loadPreset(name) {
-            const p = presets[name]; if(!p) return;
+            const p = presets[name];
+            if (!p) return;
+            pushUndo();
             state.background = p.bg; state.foreground = p.fg;
             state.cursor_bg = p.c_bg; state.cursor_fg = p.c_fg;
             state.selection_bg = p.s_bg; state.selection_fg = p.s_fg;
             state.ansi = [...p.ansi]; state.brights = [...p.brights];
-            resetPreview(); // Reset preview when loading new theme
-            refreshInputs(); render();
+            resetPreview();
+            refreshSwatches();
+            render();
         }
+
         function cycleTheme(dir) {
             const s = document.getElementById('preset-select');
             let idx = s.selectedIndex + dir;
-            if(idx<1) idx=s.options.length-1; if(idx>=s.options.length) idx=1;
-            s.selectedIndex=idx; loadPreset(s.value);
-        }
-        function randomizePalette() {
-            state.ansi = state.ansi.map(()=>'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'));
-            state.brights = state.ansi.map(c=>c);
-            resetPreview();
-            refreshInputs(); render();
-        }
-        function hexToHsl(h){let r=0,g=0,b=0;if(h.length===4){r="0x"+h[1]+h[1];g="0x"+h[2]+h[2];b="0x"+h[3]+h[3];}else{r="0x"+h[1]+h[2];g="0x"+h[3]+h[4];b="0x"+h[5]+h[6];}r/=255;g/=255;b/=255;let cmin=Math.min(r,g,b),cmax=Math.max(r,g,b),d=cmax-cmin,hu=0,s=0,l=(cmax+cmin)/2;if(d!==0)hu=(cmax===r)?((g-b)/d)%6:(cmax===g)?(b-r)/d+2:(r-g)/d+4;hu=Math.round(hu*60);if(hu<0)hu+=360;s=d===0?0:d/(1-Math.abs(2*l-1));return[hu,s*100,l*100];}
-        function hslToHex(h,s,l){s/=100;l/=100;let c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs(((h/60)%2)-1)),m=l-c/2,r=0,g=0,b=0;if(0<=h&&h<60){r=c;g=x;b=0;}else if(60<=h&&h<120){r=x;g=c;b=0;}else if(120<=h&&h<180){r=0;g=c;b=x;}else if(180<=h&&h<240){r=0;g=x;b=c;}else if(240<=h&&h<300){r=x;g=0;b=c;}else if(300<=h&&h<360){r=c;g=0;b=x;}const toHex=n=>{const h=Math.round((n+m)*255).toString(16);return h.length===1?'0'+h:h;};return "#"+toHex(r)+toHex(g)+toHex(b);}
-        function generateVibe() {
-            const seed = document.getElementById('vibe-seed').value; const [h,s] = hexToHsl(seed);
-            state.background = hslToHex(h,Math.min(s,30),8); state.foreground = hslToHex(h,Math.min(s,20),85);
-            state.cursor_bg = seed; state.selection_bg = hslToHex(h,Math.min(s,40),25); state.selection_fg = state.foreground;
-            const hues=[0,0,120,60,240,300,180,0]; const vs=Math.max(50,Math.min(s,95));
-            for(let i=0;i<8;i++){
-                if(i===0){state.ansi[i]=hslToHex(h,10,15);state.brights[i]=hslToHex(h,10,35);}
-                else if(i===7){state.ansi[i]=hslToHex(h,10,80);state.brights[i]=hslToHex(h,5,95);}
-                else{state.ansi[i]=hslToHex(hues[i],vs,60);state.brights[i]=hslToHex(hues[i],vs,75);}
-            }
-            resetPreview();
-            refreshInputs(); render();
+            if (idx < 1) idx = s.options.length - 1;
+            if (idx >= s.options.length) idx = 1;
+            s.selectedIndex = idx;
+            loadPreset(s.value);
         }
 
-        // --- PREVIEW HANDLING ---
+        function randomizePalette() {
+            pushUndo();
+            state.ansi = state.ansi.map(() => '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0'));
+            state.brights = state.ansi.map(c => c);
+            resetPreview();
+            refreshSwatches();
+            render();
+        }
+
+        // --- Color conversion utilities ---
+        function hexToHsl(h) {
+            let r = 0, g = 0, b = 0;
+            if (h.length === 4) { r = "0x" + h[1] + h[1]; g = "0x" + h[2] + h[2]; b = "0x" + h[3] + h[3]; }
+            else { r = "0x" + h[1] + h[2]; g = "0x" + h[3] + h[4]; b = "0x" + h[5] + h[6]; }
+            r /= 255; g /= 255; b /= 255;
+            let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), d = cmax - cmin, hu = 0, s = 0, l = (cmax + cmin) / 2;
+            if (d !== 0) hu = (cmax === r) ? ((g - b) / d) % 6 : (cmax === g) ? (b - r) / d + 2 : (r - g) / d + 4;
+            hu = Math.round(hu * 60); if (hu < 0) hu += 360;
+            s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+            return [hu, s * 100, l * 100];
+        }
+
+        function hslToHex(h, s, l) {
+            s /= 100; l /= 100;
+            let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs(((h / 60) % 2) - 1)), m = l - c / 2, r = 0, g = 0, b = 0;
+            if (0 <= h && h < 60) { r = c; g = x; }
+            else if (60 <= h && h < 120) { r = x; g = c; }
+            else if (120 <= h && h < 180) { g = c; b = x; }
+            else if (180 <= h && h < 240) { g = x; b = c; }
+            else if (240 <= h && h < 300) { r = x; b = c; }
+            else if (300 <= h && h < 360) { r = c; b = x; }
+            const toHex = n => { const h = Math.round((n + m) * 255).toString(16); return h.length === 1 ? '0' + h : h; };
+            return "#" + toHex(r) + toHex(g) + toHex(b);
+        }
+
+        function generateVibe() {
+            pushUndo();
+            const seed = document.getElementById('vibe-seed').value;
+            const [h, s] = hexToHsl(seed);
+            state.background = hslToHex(h, Math.min(s, 30), 8);
+            state.foreground = hslToHex(h, Math.min(s, 20), 85);
+            state.cursor_bg = seed;
+            state.cursor_fg = state.background;
+            state.selection_bg = hslToHex(h, Math.min(s, 40), 25);
+            state.selection_fg = state.foreground;
+            const hues = [0, 0, 120, 60, 240, 300, 180, 0];
+            const vs = Math.max(50, Math.min(s, 95));
+            for (let i = 0; i < 8; i++) {
+                if (i === 0) { state.ansi[i] = hslToHex(h, 10, 15); state.brights[i] = hslToHex(h, 10, 35); }
+                else if (i === 7) { state.ansi[i] = hslToHex(h, 10, 80); state.brights[i] = hslToHex(h, 5, 95); }
+                else { state.ansi[i] = hslToHex(hues[i], vs, 60); state.brights[i] = hslToHex(hues[i], vs, 75); }
+            }
+            resetPreview();
+            refreshSwatches();
+            render();
+        }
+
+        // =============================================
+        // PREVIEW
+        // =============================================
         function handleGridClick(cell) {
-            // Get colors from inline styles of clicked cell
-            const bg = cell.style.backgroundColor;
-            const fg = cell.style.color;
-            
-            // Set overrides
-            previewBg = bg;
-            previewFg = fg;
-            
-            // Update UI
-            document.getElementById('preview-title').innerText = "Custom Cell View";
+            previewBg = cell.style.backgroundColor;
+            previewFg = cell.style.color;
+            document.getElementById('preview-title').innerText = "Cell Preview";
             renderCodeView();
         }
 
@@ -497,59 +1078,62 @@
             renderCodeView();
         }
 
-        // --- RENDER ---
+        // =============================================
+        // RENDER
+        // =============================================
         function render() {
             document.getElementById('center-stage').style.backgroundColor = state.background;
-            
-            // GRID
-            const table = document.getElementById('grid'); table.innerHTML = '';
-            
-            const thead = document.createElement('thead'); const hRow = document.createElement('tr');
-            hRow.innerHTML = '<th></th><th style="color:#666;font-size:11px">def</th>' + state.ansi.map((c,i)=>`<th style="color:${c};font-size:11px">4${i}m</th>`).join('');
-            thead.appendChild(hRow); table.appendChild(thead);
+
+            // Build galaxy grid
+            const table = document.getElementById('grid');
+            table.innerHTML = '';
+
+            const thead = document.createElement('thead');
+            const hRow = document.createElement('tr');
+            hRow.innerHTML = '<th></th><th style="color:#555">Default</th>' +
+                state.ansi.map((c, i) => `<th style="color:${c}" title="\\e[4${i}m">${ansiNames[i]}</th>`).join('');
+            thead.appendChild(hRow);
+            table.appendChild(thead);
 
             const tbody = document.createElement('tbody');
-            const addRow = (l, c, bold) => {
+            const addRow = (label, fg, bold, title) => {
                 const tr = document.createElement('tr');
-                let html = `<td class="label-col">${l}</td><td class="g-cell" style="color:${c};background:${state.background};${bold?'font-weight:bold':''}">gYw</td>`;
-                state.ansi.forEach(bg => { html += `<td class="g-cell" style="color:${c};background:${bg};${bold?'font-weight:bold':''}">gYw</td>`; });
+                let html = `<td class="label-col" title="${title || ''}">${label}</td>`;
+                html += `<td class="g-cell" style="color:${fg};background:${state.background};${bold ? 'font-weight:bold' : ''}">Abc</td>`;
+                state.ansi.forEach(bg => {
+                    html += `<td class="g-cell" style="color:${fg};background:${bg};${bold ? 'font-weight:bold' : ''}">Abc</td>`;
+                });
                 tr.innerHTML = html;
                 tbody.appendChild(tr);
             };
 
-            addRow('m', state.foreground, false);
-            addRow('1m', state.brights[7], true); 
+            addRow('Default', state.foreground, false, '\\e[m');
+            addRow('Bold', state.brights[7], true, '\\e[1m');
 
-            for(let i=0; i<8; i++) {
-                addRow(`3${i}m`, state.ansi[i], false);
-                addRow(`1;3${i}m`, state.brights[i], true);
+            for (let i = 0; i < 8; i++) {
+                addRow(ansiNames[i], state.ansi[i], false, `\\e[3${i}m`);
+                addRow('Bright ' + ansiNames[i], state.brights[i], true, `\\e[1;3${i}m`);
             }
             table.appendChild(tbody);
 
-            // CODE PREVIEW
             renderCodeView();
         }
 
         function renderCodeView() {
             const panel = document.getElementById('right-panel');
             const code = document.getElementById('code-block');
-            
-            // Determine active colors
-            const bg = previewBg || state.background; // Use override or global theme
+
+            const bg = previewBg || state.background;
             const fg = previewFg || state.foreground;
-            
-            // Apply BG to Panel
             panel.style.backgroundColor = bg;
-            
-            // Syntax Colors (if previewing cell, we try to use the foreground for text, but keep syntax for flavor)
-            const C = { 
-                k:state.ansi[5], f:state.ansi[4], s:state.ansi[2], 
-                c:state.brights[0], n:state.ansi[3], t:state.ansi[6], 
-                p: fg // Main text color is dynamic
+
+            const C = {
+                k: state.ansi[5], f: state.ansi[4], s: state.ansi[2],
+                c: state.brights[0], n: state.ansi[3], t: state.ansi[6],
+                p: fg
             };
 
-            code.innerHTML = `
-<span style="color:${C.k}">import</span> <span style="color:${C.p}">os</span>
+            code.innerHTML = `<span style="color:${C.k}">import</span> <span style="color:${C.p}">os</span>
 <span style="color:${C.k}">import</span> <span style="color:${C.p}">json</span>
 
 <span style="color:${C.c}"># Configuration Loader</span>
@@ -564,24 +1148,16 @@
     <span style="color:${C.p}">}</span>
 
     <span style="color:${C.t}">print</span><span style="color:${C.p}">(</span><span style="color:${C.s}">f"Loading from {path}..."</span><span style="color:${C.p}">)</span>
-    <span style="color:${C.k}">return</span> <span style="color:${C.p}">data</span>
-`;
+    <span style="color:${C.k}">return</span> <span style="color:${C.p}">data</span>`;
         }
 
-        // --- EXPORT ---
-        function updateHint() {
-            const f = document.getElementById('export-format').value;
-            document.getElementById('format-hint').innerText = (f==='inline'?'Inline':(f==='builder'?'Builder':'File'));
-        }
-
+        // =============================================
+        // EXPORT
+        // =============================================
         function exportLua() {
             const fmt = document.getElementById('export-format').value;
             const fontName = fonts[currentFontIndex].wez;
-            
-            // Create the content string specifically for the format to ensure correct syntax
-            let finalOutput = "";
 
-            // The colors table definition body (reusable)
             const colorsBody = `
     foreground = '${state.foreground}',
     background = '${state.background}',
@@ -613,17 +1189,21 @@
     },
 `;
 
+            let finalOutput = "";
             if (fmt === 'inline') {
                 finalOutput = `return {\n    font = wezterm.font '${fontName}',\n    colors = {\n${colorsBody}    }\n}`;
             } else if (fmt === 'file') {
                 finalOutput = `return {\n    colors = {\n${colorsBody}    }\n}`;
-            } else { // builder
+            } else {
                 finalOutput = `config.font = wezterm.font '${fontName}'\nconfig.colors = {\n${colorsBody}}`;
             }
 
-            navigator.clipboard.writeText(finalOutput).then(()=>showToast("Config Copied!"));
+            navigator.clipboard.writeText(finalOutput).then(() => showToast("Config Copied!"));
         }
 
+        // =============================================
+        // BOOT
+        // =============================================
         init();
     </script>
 </body>
